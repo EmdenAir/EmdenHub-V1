@@ -1,0 +1,306 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "EmdenHub V1",
+   Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
+   LoadingTitle = "Loading..",
+   LoadingSubtitle = "by EH_Lounge",
+   Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+
+   DisableRayfieldPrompts = false,
+   DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
+
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = nil, -- Create a custom folder for your hub/game
+      FileName = "Big Hub"
+   },
+
+   Discord = {
+      Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
+      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD
+      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+   },
+
+   KeySystem = false, -- Set this to true to use our key system
+   KeySettings = {
+      Title = "Untitled",
+      Subtitle = "Key System",
+      Note = "No method of obtaining the key is provided", -- Use this to tell the user how to get a key
+      FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+      SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+      GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+      Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+   }
+})
+
+
+
+local Tab = Window:CreateTab("Player")
+
+
+
+
+-- Fly Anywhere Toggle
+local flying = false
+local bodyVelocity
+
+local function startFlying()
+    local playerCharacter = game.Players.LocalPlayer.Character
+    if playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart") then
+        local humanoid = playerCharacter:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.PlatformStand = true
+            humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+        end
+
+        bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(100000, 100000, 100000)
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.Parent = playerCharacter.HumanoidRootPart
+        flying = true
+
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if flying then
+                local mouse = game.Players.LocalPlayer:GetMouse()
+                local targetPosition = mouse.Hit.p
+                local direction = (targetPosition - playerCharacter.HumanoidRootPart.Position).unit
+                bodyVelocity.Velocity = direction * 200
+            end
+        end)
+    end
+end
+
+local function stopFlying()
+    local playerCharacter = game.Players.LocalPlayer.Character
+    if playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart") then
+        if bodyVelocity then
+            bodyVelocity:Destroy()
+        end
+
+        local humanoid = playerCharacter:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.PlatformStand = false
+            humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+        end
+        flying = false
+    end
+end
+
+Tab:CreateToggle({
+    Name = "Fly Anywhere",
+    CurrentValue = false,
+    Flag = "ToggleFlyAnywhere",
+    Callback = function(Value)
+        if Value then
+            print("Fly Anywhere aktiviert!")
+            startFlying()
+        else
+            print("Fly Anywhere deaktiviert!")
+            stopFlying()
+        end
+    end
+})
+
+
+
+-- Infinity Jump Script
+local infinityJumpEnabled = false
+
+Tab:CreateToggle({
+    Name = "Infinity Jump",
+    CurrentValue = false,
+    Flag = "ToggleInfinityJump",
+    Callback = function(Value)
+        infinityJumpEnabled = Value
+        if infinityJumpEnabled then
+            print("Infinity Jump aktiviert!")
+            game:GetService("UserInputService").JumpRequest:Connect(function()
+                if infinityJumpEnabled then
+                    local playerCharacter = game.Players.LocalPlayer.Character
+                    if playerCharacter and playerCharacter:FindFirstChild("Humanoid") then
+                        playerCharacter.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                    end
+                end
+            end)
+        else
+            print("Infinity Jump deaktiviert!")
+        end
+    end
+})
+
+
+
+-- Speed Boost Toggle
+local speedBoostEnabled = false
+local speedBoostValue = 250
+
+Tab:CreateToggle({
+    Name = "Ultimate Speed",
+    CurrentValue = false,
+    Flag = "ToggleSpeedBoost",
+    Callback = function(Value)
+        speedBoostEnabled = Value
+        if speedBoostEnabled then
+            print("Speed Boost aktiviert!")
+            local playerCharacter = game.Players.LocalPlayer.Character
+            if playerCharacter and playerCharacter:FindFirstChild("Humanoid") then
+                playerCharacter.Humanoid.WalkSpeed = speedBoostValue
+            end
+        else
+            print("Speed Boost deaktiviert!")
+            local playerCharacter = game.Players.LocalPlayer.Character
+            if playerCharacter and playerCharacter:FindFirstChild("Humanoid") then
+                playerCharacter.Humanoid.WalkSpeed = 16
+            end
+        end
+    end
+})
+
+
+
+-- Noclip Toggle
+local noclipEnabled = false
+Tab:CreateToggle({
+    Name = "Noclip",
+    CurrentValue = false,
+    Flag = "ToggleNoclip",
+    Callback = function(Value)
+        noclipEnabled = Value
+        if noclipEnabled then
+            print("Noclip aktiviert!")
+            game:GetService("RunService").Stepped:Connect(function()
+                local player = game.Players.LocalPlayer
+                if player and player.Character then
+                    for _, part in pairs(player.Character:GetDescendants()) do
+                        if part:IsA("BasePart") and part.CanCollide then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        else
+            print("Noclip deaktiviert!")
+            local player = game.Players.LocalPlayer
+            if player and player.Character then
+                for _, part in pairs(player.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = true
+                    end
+                end
+            end
+        end
+    end
+})
+
+
+
+
+local Tab = Window:CreateTab("Optics")
+
+
+
+-- ESP Toggle
+local espEnabled = false
+local function createESP(player)
+    local highlight = Instance.new("Highlight")
+    highlight.Parent = player.Character
+    highlight.FillTransparency = 0.7
+    highlight.OutlineTransparency = 0.2
+    highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
+
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Adornee = player.Character:WaitForChild("Head")
+    billboardGui.Size = UDim2.new(0, 200, 0, 50)
+    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+    billboardGui.Parent = player.Character
+
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, 0, 1, 0)
+    nameLabel.Text = player.Name
+    nameLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.TextSize = 20
+    nameLabel.Parent = billboardGui
+end
+
+local function removeESP(player)
+    if player.Character then
+        local highlight = player.Character:FindFirstChildOfClass("Highlight")
+        if highlight then
+            highlight:Destroy()
+        end
+
+        local billboardGui = player.Character:FindFirstChildOfClass("BillboardGui")
+        if billboardGui then
+            billboardGui:Destroy()
+        end
+    end
+end
+
+Tab:CreateToggle({
+    Name = "ESP",
+    CurrentValue = false,
+    Flag = "ToggleESP",
+    Callback = function(Value)
+        espEnabled = Value
+        if espEnabled then
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player.Character then
+                    createESP(player)
+                end
+                player.CharacterAdded:Connect(function()
+                    createESP(player)
+                end)
+            end
+        else
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player.Character then
+                    removeESP(player)
+                end
+            end
+        end
+    end
+})
+
+
+
+local Tab = Window:CreateTab("Weapon")
+
+
+
+-- Aimbot Toggle
+local aimbotEnabled = false
+local aimbotToggle = Window:CreateToggle({
+    Name = "Aimbot",
+    CurrentValue = false,
+    Flag = "Aimbot",
+    Callback = function(value)
+        aimbotEnabled = value
+        if aimbotEnabled then
+            -- Aimbot logic here (e.g., auto-target enemies)
+        else
+            -- Disable aimbot logic
+        end
+    end,
+})
+
+
+
+local Tab = Window:CreateTab("Misc")
+
+
+
+-- Funktion zum Teleportieren zum Spiel mit der angegebenen ID
+local function teleportToGame()
+    local placeId = 12716055617 -- Spiel-ID für das Zielspiel
+    game:GetService("TeleportService"):Teleport(placeId) -- Teleportiert den Spieler zum Zielspiel
+end
+
+-- Button für den Teleport
+local Button = Tab:CreateButton({
+   Name = "Rejoin", 
+   Callback = function()
+      teleportToGame() -- Teleport-Funktion auslösen, wenn der Button gedrückt wird
+   end,
+})
